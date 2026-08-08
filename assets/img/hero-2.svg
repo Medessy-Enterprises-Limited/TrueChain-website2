@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 880" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="0.8">
+      <stop offset="0" stop-color="#0A1729"/>
+      <stop offset="0.6" stop-color="#0C2244"/>
+      <stop offset="1" stop-color="#123160"/>
+    </linearGradient>
+    <radialGradient id="glow2" cx="0.72" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#3585DE" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#3585DE" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid2" width="64" height="64" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0v64" fill="none" stroke="#28507F" stroke-width="0.6" opacity="0.25"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="880" fill="url(#bg2)"/>
+  <rect width="1920" height="880" fill="url(#grid2)"/>
+  <rect width="1920" height="880" fill="url(#glow2)"/>
+  <g stroke="#2E7CD6" stroke-width="1.6" fill="none" opacity="0.55">
+    <path d="M1180 230 L1330 160 L1490 215 L1500 380 L1360 455 L1195 395 Z"/>
+    <path d="M1500 380 L1660 310 L1820 365 L1830 530 L1690 605 L1525 545 Z" opacity="0.8"/>
+    <path d="M1360 455 L1370 620 L1230 695 L1065 635 L1055 470 L1195 395 Z" opacity="0.65"/>
+    <path d="M1690 605 L1700 770 L1560 845" opacity="0.5"/>
+    <path d="M1330 160 L1340 20" opacity="0.4"/>
+    <path d="M1820 365 L1915 320" opacity="0.5"/>
+  </g>
+  <g fill="#5EA0E6">
+    <circle cx="1330" cy="160" r="5"/><circle cx="1490" cy="215" r="4"/><circle cx="1500" cy="380" r="6"/>
+    <circle cx="1360" cy="455" r="5"/><circle cx="1195" cy="395" r="4"/><circle cx="1180" cy="230" r="4"/>
+    <circle cx="1660" cy="310" r="4"/><circle cx="1820" cy="365" r="5"/><circle cx="1830" cy="530" r="4"/>
+    <circle cx="1690" cy="605" r="5"/><circle cx="1525" cy="545" r="4"/>
+    <circle cx="1370" cy="620" r="4"/><circle cx="1230" cy="695" r="5"/><circle cx="1065" cy="635" r="4"/>
+    <circle cx="1055" cy="470" r="4"/>
+  </g>
+  <circle cx="1500" cy="380" r="17" fill="none" stroke="#5EA0E6" opacity="0.4"/>
+  <circle cx="1690" cy="605" r="14" fill="none" stroke="#5EA0E6" opacity="0.3"/>
+</svg>
