@@ -118,6 +118,8 @@ Apache in production.
 
 ## Troubleshooting
 
+- **The installer keeps appearing instead of the website** — the site is not installed yet: `app/config.php` does not exist, so every URL is redirected to `install.php`. Complete the installer once and the redirect stops. (If you already installed, `app/config.php` was deleted or the `app/` folder was not uploaded completely.)
+- **"PDO MySQL driver — Fail"** — the `pdo_mysql` extension is off for your PHP version. cPanel → **Select PHP Version** → **Extensions** → tick `pdo_mysql` (shown as `nd_pdo_mysql` on some plans) → save → reload `install.php`. If you cannot enable it, set the database type to **SQLite** and install now; the site runs fully on SQLite.
 - **500 error after upload** — confirm PHP 8.1+ is selected and `.htaccess` uploaded (dot-files are hidden by default in File Manager → Settings → Show hidden files)
 - **"Installation failed: SQLSTATE…"** — database name/user/password mismatch, or the user lacks privileges on the database
 - **Pretty URLs 404** — set `RewriteBase` as described above

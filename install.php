@@ -27,16 +27,57 @@ function h($v): string
 $installed = is_file(LOCK_FILE) && is_file(APP_PATH . '/config.php');
 
 // ---------------- requirement checks ----------------
+// Each check is [passed?, how to fix it, blocks the install?]. The two database
+// drivers do not block on their own - one working driver is enough.
+$hasPdoMysql  = extension_loaded('pdo_mysql');
+$hasPdoSqlite = extension_loaded('pdo_sqlite');
+
 $checks = [
-    'PHP 8.0 or newer (you have ' . PHP_VERSION . ')' => version_compare(PHP_VERSION, '8.0.0', '>='),
-    'PDO extension'                  => extension_loaded('pdo'),
-    'PDO MySQL driver (for GoDaddy)' => extension_loaded('pdo_mysql'),
-    'app/ directory writable'        => is_writable(APP_PATH),
-    'uploads/ directory writable'    => is_writable(ROOT_PATH . '/uploads') || @mkdir(ROOT_PATH . '/uploads', 0755),
-    'OpenSSL / random_bytes'         => function_exists('random_bytes'),
+    'PHP 8.0 or newer (you have ' . PHP_VERSION . ')' => [
+        version_compare(PHP_VERSION, '8.0.0', '>='),
+        'cPanel → Select PHP Version → choose PHP 8.1 or newer, then reload this page.',
+        true,
+    ],
+    'PDO extension' => [
+        extension_loaded('pdo'),
+        'cPanel → Select PHP Version → Extensions → tick "pdo", then reload this page.',
+        true,
+    ],
+    'PDO MySQL driver (for GoDaddy)' => [
+        $hasPdoMysql,
+        'cPanel → Select PHP Version → Extensions → tick "pdo_mysql" (listed as "nd_pdo_mysql" on some GoDaddy plans), save, then reload this page.',
+        false,
+    ],
+    'PDO SQLite driver (fallback)' => [
+        $hasPdoSqlite,
+        'cPanel → Select PHP Version → Extensions → tick "pdo_sqlite". Only needed if you cannot enable MySQL.',
+        false,
+    ],
+    'app/ directory writable' => [
+        is_writable(APP_PATH),
+        'cPanel → File Manager → right-click app/ → Change Permissions → 755.',
+        true,
+    ],
+    'uploads/ directory writable' => [
+        is_writable(ROOT_PATH . '/uploads') || @mkdir(ROOT_PATH . '/uploads', 0755),
+        'Create an uploads/ folder beside index.php and set its permissions to 755.',
+        true,
+    ],
+    'OpenSSL / random_bytes' => [
+        function_exists('random_bytes'),
+        'cPanel → Select PHP Version → Extensions → tick "openssl", then reload this page.',
+        true,
+    ],
 ];
-$checksPass = !in_array(false, array_values($checks), true)
-    || (extension_loaded('pdo_sqlite') && $checks['PDO extension'] && $checks['app/ directory writable']);
+
+$blocked = false;
+foreach ($checks as $check) {
+    if ($check[2] && !$check[0]) {
+        $blocked = true;
+    }
+}
+$checksPass = !$blocked && ($hasPdoMysql || $hasPdoSqlite);
+$defaultDriver = $hasPdoMysql ? 'mysql' : 'sqlite';
 
 // ---------------- CSRF for installer ----------------
 if (empty($_SESSION['ins_token'])) {
@@ -66,6 +107,12 @@ if (!$installed && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($prefix !== '' && !preg_match('/^[A-Za-z0-9_]{1,20}$/', $prefix)) {
             $errors[] = 'Table prefix may only contain letters, numbers and underscores.';
+        }
+        if ($driver === 'mysql' && !$hasPdoMysql) {
+            $errors[] = 'This server has no PDO MySQL driver. Enable "pdo_mysql" in cPanel → Select PHP Version → Extensions, or choose SQLite as the database type.';
+        }
+        if ($driver === 'sqlite' && !$hasPdoSqlite) {
+            $errors[] = 'This server has no PDO SQLite driver. Enable "pdo_sqlite" in cPanel → Select PHP Version → Extensions, or choose MySQL as the database type.';
         }
         if ($driver === 'mysql' && ($name === '' || $user === '')) {
             $errors[] = 'Please provide the MySQL database name and user.';
@@ -205,11 +252,38 @@ a{color:var(--blue)}
 
       <h2>Step 1 · Server requirements</h2>
       <table class="checks">
-        <?php foreach ($checks as $label => $ok): ?>
-          <tr><td><?= h($label) ?></td><td style="text-align:right" class="<?= $ok ? 'ok' : 'bad' ?>"><?= $ok ? 'Pass' : 'Fail' ?></td></tr>
+        <?php foreach ($checks as $label => [$ok, $hint, $required]): ?>
+          <tr>
+            <td>
+              <?= h($label) ?>
+              <?php if (!$ok): ?><div class="note"><strong>How to fix:</strong> <?= h($hint) ?></div><?php endif; ?>
+            </td>
+            <td style="text-align:right;vertical-align:top" class="<?= $ok ? 'ok' : 'bad' ?>"><?= $ok ? 'Pass' : ($required ? 'Fail' : 'Not available') ?></td>
+          </tr>
         <?php endforeach; ?>
       </table>
       <p class="note">On GoDaddy all of these pass by default with PHP 8.1+ selected in cPanel.</p>
+
+      <?php if (!$hasPdoMysql && $hasPdoSqlite): ?>
+        <div class="alert err">
+          <strong>MySQL is not available on this server.</strong>
+          The <code>pdo_mysql</code> extension is switched off for the PHP version your hosting account is using, so the installer cannot reach a MySQL database yet.
+          <br><br>
+          <strong>Recommended:</strong> in cPanel open <em>Select PHP Version</em> → <em>Extensions</em>, tick <code>pdo_mysql</code> (some GoDaddy plans list it as <code>nd_pdo_mysql</code>), save, then reload this page — the row above will turn green.
+          <br><br>
+          <strong>Or install now:</strong> leave the database type below set to <em>SQLite</em>. The site runs fully on SQLite; you can move to MySQL later.
+        </div>
+      <?php elseif (!$hasPdoMysql && !$hasPdoSqlite): ?>
+        <div class="alert err">
+          <strong>No database driver is available.</strong>
+          Neither <code>pdo_mysql</code> nor <code>pdo_sqlite</code> is enabled for your PHP version, so the site cannot be installed yet.
+          In cPanel open <em>Select PHP Version</em>, choose PHP 8.1 or newer, then under <em>Extensions</em> tick <code>pdo_mysql</code>, save, and reload this page.
+        </div>
+      <?php elseif ($blocked): ?>
+        <div class="alert err">
+          <strong>Some requirements are not met.</strong> Follow the "How to fix" steps above, then reload this page.
+        </div>
+      <?php endif; ?>
 
       <?php foreach ($errors as $er): ?>
         <div class="alert err"><?= h($er) ?></div>
@@ -220,12 +294,17 @@ a{color:var(--blue)}
 
         <h2>Step 2 · Database</h2>
         <p class="note">In GoDaddy cPanel, create a MySQL database and user first (cPanel → MySQL Databases), grant the user <em>all privileges</em> on the database, then enter the details here.</p>
+        <?php $selectedDriver = ($_POST['driver'] ?? $defaultDriver) === 'sqlite' ? 'sqlite' : 'mysql'; ?>
         <label>Database type</label>
         <select name="driver" id="driver" onchange="document.getElementById('mysqlFields').style.display=this.value==='mysql'?'':'none'">
-          <option value="mysql">MySQL (recommended for GoDaddy)</option>
-          <option value="sqlite">SQLite (no database server required)</option>
+          <option value="mysql" <?= $selectedDriver === 'mysql' ? 'selected' : '' ?> <?= $hasPdoMysql ? '' : 'disabled' ?>>
+            MySQL (recommended for GoDaddy)<?= $hasPdoMysql ? '' : ' — pdo_mysql not enabled' ?>
+          </option>
+          <option value="sqlite" <?= $selectedDriver === 'sqlite' ? 'selected' : '' ?> <?= $hasPdoSqlite ? '' : 'disabled' ?>>
+            SQLite (no database server required)<?= $hasPdoSqlite ? '' : ' — pdo_sqlite not enabled' ?>
+          </option>
         </select>
-        <div id="mysqlFields">
+        <div id="mysqlFields"<?= $selectedDriver === 'mysql' ? '' : ' style="display:none"' ?>>
           <div class="row">
             <div><label>Database host</label><input name="db_host" value="<?= h($_POST['db_host'] ?? 'localhost') ?>"></div>
             <div><label>Port</label><input name="db_port" value="<?= h($_POST['db_port'] ?? '3306') ?>"></div>
@@ -247,7 +326,10 @@ a{color:var(--blue)}
           <div><label>Confirm password</label><input name="admin_pass2" type="password"></div>
         </div>
 
-        <button class="btn" type="submit" <?= $checksPass ? '' : 'disabled title="Fix the failed requirements first"' ?>>Install website</button>
+        <button class="btn" type="submit" <?= $checksPass ? '' : 'disabled title="Fix the failed requirements above first"' ?>>Install website</button>
+        <?php if (!$checksPass): ?>
+          <p class="note">This button stays disabled until the requirements above are met. Fix them in cPanel, then reload this page.</p>
+        <?php endif; ?>
       </form>
     <?php endif; ?>
 
