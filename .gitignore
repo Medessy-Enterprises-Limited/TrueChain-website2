@@ -1,0 +1,12 @@
+# Written by install.php - contains database credentials
+app/config.php
+
+# Runtime state: error log, SQLite database, install lock
+app/storage/
+
+# Visitor uploads (media library)
+uploads/*
+!uploads/index.html
+!uploads/.htaccess
+
+.DS_Store

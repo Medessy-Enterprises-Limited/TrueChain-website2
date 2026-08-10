@@ -21,6 +21,20 @@ class Settings
         }
     }
 
+    /** Discard the cache so the next read hits the database again. */
+    public static function reload(): void
+    {
+        self::$cache = null;
+        self::load();
+    }
+
+    /** False when the settings table is missing or empty - i.e. not seeded yet. */
+    public static function any(): bool
+    {
+        self::load();
+        return self::$cache !== [];
+    }
+
     public static function get(string $key, string $default = ''): string
     {
         self::load();

@@ -24,6 +24,106 @@ function h($v): string
     return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Apache rules the site needs. File Manager hides dot-files by default, so
+ * these are routinely left behind during upload - write any that are missing
+ * and report the ones we could not create.
+ *
+ * @return string[] paths that still need to be uploaded by hand
+ */
+function ensure_htaccess(): array
+{
+    $files = [
+        ROOT_PATH . '/.htaccess' => <<<'APACHE'
+# True Chain Infrastructure Company - Apache configuration
+DirectoryIndex index.php
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Installing in a subfolder? Uncomment and set the folder name, e.g. /site/
+    # RewriteBase /
+
+    # Force HTTPS - remove the "#" from the next two lines once SSL is active.
+    # RewriteCond %{HTTPS} !=on
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    RewriteRule ^app(/|$) - [F,L]
+
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+<FilesMatch "^\.|(^|\.)(md|sample\.php|log|sqlite|lock)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<Files "dev-router.php">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</Files>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+APACHE,
+        APP_PATH . '/.htaccess' => <<<'APACHE'
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+APACHE,
+        ROOT_PATH . '/uploads/.htaccess' => <<<'APACHE'
+Options -Indexes -ExecCGI
+
+<IfModule mod_mime.c>
+    RemoveHandler .php .phtml .php3 .php4 .php5 .php6 .php7 .php8 .phps .phar .cgi .pl .py .sh
+    RemoveType .php .phtml .php3 .php4 .php5 .php6 .php7 .php8 .phps .phar
+</IfModule>
+
+<FilesMatch "\.(php|phtml|php[0-9]|phps|phar|cgi|pl|py|sh|htaccess|htpasswd)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+APACHE,
+    ];
+
+    $missing = [];
+    foreach ($files as $path => $body) {
+        if (is_file($path)) {
+            continue;
+        }
+        if (@file_put_contents($path, $body . "\n", LOCK_EX) === false) {
+            $missing[] = str_replace(ROOT_PATH, '', $path);
+        }
+    }
+    return $missing;
+}
+
 $installed = is_file(LOCK_FILE) && is_file(APP_PATH . '/config.php');
 
 // ---------------- requirement checks ----------------
@@ -181,6 +281,10 @@ if (!$installed && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Protect storage even if .htaccess in /app is removed
                 @file_put_contents(APP_PATH . '/storage/.htaccess', "Require all denied\n");
 
+                // File Manager hides dot-files, so these are often missed during
+                // upload. Restore any that did not make it onto the server.
+                $missingRules = ensure_htaccess();
+
                 $done = true;
             } catch (Throwable $ex) {
                 $errors[] = 'Installation failed: ' . $ex->getMessage();
@@ -242,6 +346,14 @@ a{color:var(--blue)}
       <p class="success-icon">✅</p>
       <h2 style="margin-top:0">Installation complete</h2>
       <p>Your corporate website is live and fully seeded with content, and your administrator account is ready.</p>
+      <?php if (!empty($missingRules)): ?>
+        <div class="alert err">
+          <strong>One manual step left.</strong> These Apache rule files are missing and could not be created automatically:
+          <code><?= implode('</code>, <code>', array_map('h', $missingRules)) ?></code>.
+          Upload them from the original package (File Manager → Settings → <em>Show hidden files</em>), otherwise
+          pages other than the home page will show "Not Found".
+        </div>
+      <?php endif; ?>
       <div class="del"><strong>Important:</strong> delete <code>install.php</code> from the server now (File Manager → public_html → install.php → Delete). The installer has locked itself, but removing the file entirely is best practice.</div>
       <p style="margin-top:20px">
         <a class="btn" href="<?= h($adminUrl) ?>">Open the admin panel</a>&nbsp;&nbsp;

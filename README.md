@@ -35,6 +35,68 @@ done. Built for GoDaddy shared hosting (any Apache + PHP 8.0+ host works).
 
 ---
 
+## Deploying to Railway (10 minutes)
+
+Railway builds the included `Dockerfile` and runs the site on Apache + PHP 8.3.
+There is **no installer to run**: the service reads its configuration from
+environment variables and creates the database schema and starting content by
+itself on first boot.
+
+### 1. Create the service
+1. Railway → **New Project** → **Deploy from GitHub repo** → pick this repository
+2. Railway detects `Dockerfile` and builds it (`railway.json` pins this)
+
+### 2. Add the database
+1. In the project → **New** → **Database** → **Add MySQL**
+   (choose MySQL, *not* PostgreSQL — the site's schema is written for MySQL)
+2. Open the **web service** → **Variables** → **Add Variable Reference** and add
+   `MYSQL_URL` from the MySQL service
+
+### 3. Set the administrator variables
+On the web service → **Variables**:
+
+| Variable | Value |
+|---|---|
+| `ADMIN_EMAIL` | the address you will sign in with |
+| `ADMIN_PASSWORD` | 10+ characters — used once, to create the account |
+| `ADMIN_NAME` | e.g. `Osamede Evbakhavbokun` |
+| `APP_KEY` | any long random string (keeps admins signed in across deploys) |
+
+### 4. Keep uploaded media across deploys
+The container filesystem is rebuilt on every deploy, so **without this step
+every image uploaded in the media library disappears when you next deploy**.
+
+Web service → **Settings** → **Volumes** → **Add Volume**, mount path
+`/var/www/html/uploads`.
+
+### 5. Go live
+1. **Settings** → **Networking** → **Generate Domain** (or add your own)
+2. Open the URL — the site is already seeded with content
+3. Sign in at `/admin` with the `ADMIN_EMAIL` / `ADMIN_PASSWORD` above
+
+TLS, HTTPS redirection and the `PORT` binding are handled by Railway and the
+container entrypoint; nothing in `.htaccess` needs editing.
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `MYSQL_URL` / `DATABASE_URL` | — | Full connection URL; the usual Railway route |
+| `MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER`, `MYSQLPASSWORD` | — | Connection parts, if you prefer them to a URL |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` | — | Same, for non-Railway hosts |
+| `DB_DRIVER` | `mysql` | Set to `sqlite` to run without a database server |
+| `SQLITE_PATH` | `app/storage/tcic.sqlite` | Point at a mounted volume when using SQLite |
+| `DB_PREFIX` | `tcic_` | Table prefix |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | — | First-boot administrator account |
+| `APP_KEY` | derived | Session-binding secret; set it explicitly |
+| `APP_DEBUG` | `false` | `true` shows stack traces — never on a live site |
+| `SESSION_NAME`, `SESSION_IDLE` | `TCICSESS`, `3600` | Session cookie name, admin idle timeout |
+
+Once seeded, `ADMIN_PASSWORD` is no longer consulted — change the password in
+**Admin → Administrators** and remove the variable.
+
+---
+
 ## Deploying to GoDaddy (10 minutes)
 
 ### 1. Choose a PHP version
