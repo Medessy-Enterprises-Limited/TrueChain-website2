@@ -26,10 +26,14 @@ class Env
         return $v === null ? $default : in_array(strtolower($v), ['1', 'true', 'on', 'yes'], true);
     }
 
-    /** Connection URL as supplied by Railway/Heroku-style plugins. */
+    /**
+     * Connection URL as supplied by Railway/Heroku-style plugins. The private
+     * URL is preferred over the public one: it stays on the platform's internal
+     * network, which is faster and is not billed as egress.
+     */
     private static function url(): ?string
     {
-        foreach (['DATABASE_URL', 'MYSQL_URL', 'MYSQL_PUBLIC_URL'] as $name) {
+        foreach (['DATABASE_URL', 'MYSQL_URL', 'MYSQL_PRIVATE_URL', 'MYSQL_PUBLIC_URL'] as $name) {
             $v = self::value($name);
             if ($v !== null) {
                 return $v;
@@ -55,7 +59,7 @@ class Env
     public static function detected(): string
     {
         $names = [
-            'DATABASE_URL', 'MYSQL_URL', 'MYSQL_PUBLIC_URL',
+            'DATABASE_URL', 'MYSQL_URL', 'MYSQL_PRIVATE_URL', 'MYSQL_PUBLIC_URL',
             'MYSQLHOST', 'MYSQLPORT', 'MYSQLDATABASE', 'MYSQLUSER', 'MYSQLPASSWORD',
             'DB_DRIVER', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS',
             'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'APP_KEY',

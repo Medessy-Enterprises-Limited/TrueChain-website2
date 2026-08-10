@@ -22,7 +22,7 @@ RUN a2enmod rewrite headers expires \
        '</Directory>' \
        '# Apache does not hand its whole environment to PHP, so the platform-injected' \
        '# configuration variables have to be passed through by name.' \
-       'PassEnv DATABASE_URL MYSQL_URL MYSQL_PUBLIC_URL' \
+       'PassEnv DATABASE_URL MYSQL_URL MYSQL_PRIVATE_URL MYSQL_PUBLIC_URL' \
        'PassEnv MYSQLHOST MYSQLPORT MYSQLDATABASE MYSQLUSER MYSQLPASSWORD' \
        'PassEnv DB_DRIVER DB_HOST DB_PORT DB_NAME DB_USER DB_PASS DB_PREFIX SQLITE_PATH' \
        'PassEnv ADMIN_EMAIL ADMIN_PASSWORD ADMIN_NAME' \
