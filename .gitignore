@@ -10,3 +10,6 @@ uploads/*
 !uploads/.htaccess
 
 .DS_Store
+
+# Generated database dump - contains the admin password hash
+tcic-mysql.sql
