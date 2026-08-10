@@ -47,6 +47,28 @@ class Env
             || strtolower((string)self::value('DB_DRIVER', '')) === 'sqlite';
     }
 
+    /**
+     * Names of the recognised database variables that are actually visible to
+     * PHP. Names only - never values - so it is safe to show while diagnosing a
+     * deployment that cannot find its configuration.
+     */
+    public static function detected(): string
+    {
+        $names = [
+            'DATABASE_URL', 'MYSQL_URL', 'MYSQL_PUBLIC_URL',
+            'MYSQLHOST', 'MYSQLPORT', 'MYSQLDATABASE', 'MYSQLUSER', 'MYSQLPASSWORD',
+            'DB_DRIVER', 'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASS',
+            'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'APP_KEY',
+        ];
+        $found = [];
+        foreach ($names as $n) {
+            if (self::value($n) !== null) {
+                $found[] = $n;
+            }
+        }
+        return $found === [] ? 'none' : implode(', ', $found);
+    }
+
     /** @return array{driver:string,host:string,port:string,name:string,user:string,pass:string,prefix:string,sqlite_path:string} */
     public static function database(): array
     {

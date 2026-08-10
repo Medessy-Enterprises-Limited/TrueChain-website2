@@ -36,16 +36,6 @@ function config(?string $section = null): array
     return $section === null ? $cfg : ($cfg[$section] ?? []);
 }
 
-// ---- Not installed yet? Send visitors to the installer. ----
-if (!is_file(APP_PATH . '/config.php') && !CONFIG_FROM_ENV) {
-    $self = basename($_SERVER['SCRIPT_NAME'] ?? '');
-    if ($self !== 'install.php') {
-        header('Location: ' . (BASE_PATH === '' ? '' : BASE_PATH) . '/install.php');
-        exit;
-    }
-    return; // installer handles everything itself
-}
-
 /**
  * Deployment is misconfigured (bad credentials, missing variables). Show the
  * operator something actionable instead of a blank 500, and log the detail.
@@ -65,6 +55,29 @@ function setup_error(string $message): void
         . 'service notice. It disappears as soon as the configuration is corrected.</p>'
         . '</body></html>';
     exit;
+}
+
+// ---- Not configured yet ----
+// Redirect to the installer only when there is an installer to redirect to.
+// The container image ships without it, and an unconditional redirect there
+// loops forever: the rewrite rules send the missing path back to index.php,
+// which redirects to it again.
+if (!is_file(APP_PATH . '/config.php') && !CONFIG_FROM_ENV) {
+    $self = basename($_SERVER['SCRIPT_NAME'] ?? '');
+    if ($self === 'install.php') {
+        return; // the installer configures everything itself
+    }
+    if (is_file(ROOT_PATH . '/install.php')) {
+        header('Location: ' . (BASE_PATH === '' ? '' : BASE_PATH) . '/install.php');
+        exit;
+    }
+    setup_error(
+        'No database configuration was found. Set MYSQL_URL (or DATABASE_URL), plus '
+        . 'ADMIN_EMAIL and ADMIN_PASSWORD, as variables on this service and redeploy. '
+        . 'On Railway: add a MySQL database to the project, then open this service\'s '
+        . 'Variables tab and use "Add Variable Reference" to share MYSQL_URL with it. '
+        . 'Database variables detected in this environment: ' . Env::detected() . '.'
+    );
 }
 
 // ---- Error handling ----

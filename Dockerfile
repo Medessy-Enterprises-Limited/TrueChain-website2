@@ -15,7 +15,18 @@ RUN a2dismod mpm_event mpm_worker >/dev/null 2>&1 || true; \
 # The site's .htaccess files do the URL routing and lock down app/ and uploads/,
 # so overrides have to be honoured.
 RUN a2enmod rewrite headers expires \
-    && printf '<Directory /var/www/html>\n    AllowOverride All\n    Require all granted\n</Directory>\n' \
+    && printf '%s\n' \
+       '<Directory /var/www/html>' \
+       '    AllowOverride All' \
+       '    Require all granted' \
+       '</Directory>' \
+       '# Apache does not hand its whole environment to PHP, so the platform-injected' \
+       '# configuration variables have to be passed through by name.' \
+       'PassEnv DATABASE_URL MYSQL_URL MYSQL_PUBLIC_URL' \
+       'PassEnv MYSQLHOST MYSQLPORT MYSQLDATABASE MYSQLUSER MYSQLPASSWORD' \
+       'PassEnv DB_DRIVER DB_HOST DB_PORT DB_NAME DB_USER DB_PASS DB_PREFIX SQLITE_PATH' \
+       'PassEnv ADMIN_EMAIL ADMIN_PASSWORD ADMIN_NAME' \
+       'PassEnv APP_KEY APP_DEBUG SESSION_NAME SESSION_IDLE' \
        > /etc/apache2/conf-available/tcic.conf \
     && a2enconf tcic \
     && echo 'ServerName localhost' > /etc/apache2/conf-available/servername.conf \
