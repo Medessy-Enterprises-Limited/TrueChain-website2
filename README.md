@@ -180,6 +180,8 @@ Apache in production.
 
 ## Troubleshooting
 
+- **Railway: `AH00534: apache2: Configuration error: More than one MPM loaded`** — two Apache MPMs were enabled at once (Debian defaults to `mpm_event`, mod_php needs `mpm_prefork`). The Dockerfile now pins `mpm_prefork` and asserts at build time that exactly one MPM is loaded, so a rebuild fixes it. If the *build* fails on that assertion, the log line `MPMs loaded: N` says what was actually enabled.
+- **Railway: the deploy log shows "Setup required"** — the app booted but is misconfigured; the page names the variable to fix. Check that `MYSQL_URL` is shared with the web service and that `ADMIN_EMAIL` / `ADMIN_PASSWORD` are set for the first boot.
 - **The installer keeps appearing instead of the website** — the site is not installed yet: `app/config.php` does not exist, so every URL is redirected to `install.php`. Complete the installer once and the redirect stops. (If you already installed, `app/config.php` was deleted or the `app/` folder was not uploaded completely.)
 - **"PDO MySQL driver — Fail"** — the `pdo_mysql` extension is off for your PHP version. cPanel → **Select PHP Version** → **Extensions** → tick `pdo_mysql` (shown as `nd_pdo_mysql` on some plans) → save → reload `install.php`. If you cannot enable it, set the database type to **SQLite** and install now; the site runs fully on SQLite.
 - **500 error after upload** — confirm PHP 8.1+ is selected and `.htaccess` uploaded (dot-files are hidden by default in File Manager → Settings → Show hidden files)
