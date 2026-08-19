@@ -146,6 +146,21 @@ if (CONFIG_FROM_ENV && !Settings::any()) {
     }
 }
 
+// An installed site catches up with content shipped in later releases, such as
+// new leadership entries or company websites. Anything edited in the admin
+// panel is left untouched; see Seed::topUp().
+if (Settings::any()) {
+    require_once APP_PATH . '/core/Seed.php';
+    if ((int)setting('content_version', '0') < Seed::CONTENT_VERSION) {
+        try {
+            Seed::topUp();
+            Settings::reload();
+        } catch (Throwable $e) {
+            error_log('[setup] content top-up failed: ' . $e->getMessage());
+        }
+    }
+}
+
 // ---- Headers ----
 Security::sendHeaders();
 

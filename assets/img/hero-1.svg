@@ -1,38 +1,144 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 880" preserveAspectRatio="xMidYMid slice">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 880" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A freight truck on a Nigerian highway corridor at dawn, overlaid with a connected telemetry network">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#081325"/>
-      <stop offset="0.55" stop-color="#0B1E3A"/>
-      <stop offset="1" stop-color="#0E2A52"/>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#050E1C"/>
+      <stop offset="0.45" stop-color="#0B1E3A"/>
+      <stop offset="0.78" stop-color="#12365F"/>
+      <stop offset="1" stop-color="#1D4E7E"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.78" cy="0.32" r="0.55">
-      <stop offset="0" stop-color="#2E7CD6" stop-opacity="0.28"/>
-      <stop offset="1" stop-color="#2E7CD6" stop-opacity="0"/>
+    <radialGradient id="dawn" cx="0.72" cy="0.62" r="0.5">
+      <stop offset="0" stop-color="#E8A94B" stop-opacity="0.42"/>
+      <stop offset="0.45" stop-color="#C97B3C" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#C97B3C" stop-opacity="0"/>
     </radialGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A1830"/>
+      <stop offset="1" stop-color="#04101F"/>
+    </linearGradient>
+    <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16304F"/>
+      <stop offset="1" stop-color="#0A1B30"/>
+    </linearGradient>
+    <linearGradient id="leftfade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#040C18" stop-opacity="0.94"/>
+      <stop offset="0.42" stop-color="#040C18" stop-opacity="0.62"/>
+      <stop offset="0.72" stop-color="#040C18" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#040C18" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="cab" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2E7CD6"/>
+      <stop offset="1" stop-color="#154C8E"/>
+    </linearGradient>
+    <linearGradient id="trailer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EDF3FA"/>
+      <stop offset="1" stop-color="#B9CBDF"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFE6AE" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#FFE6AE" stop-opacity="0"/>
+    </linearGradient>
     <pattern id="dots" width="46" height="46" patternUnits="userSpaceOnUse">
-      <circle cx="2" cy="2" r="1.1" fill="#3D6EA8" opacity="0.18"/>
+      <circle cx="2" cy="2" r="1.1" fill="#3D6EA8" opacity="0.16"/>
     </pattern>
   </defs>
-  <rect width="1920" height="880" fill="url(#bg)"/>
+
+  <!-- sky -->
+  <rect width="1920" height="880" fill="url(#sky)"/>
   <rect width="1920" height="880" fill="url(#dots)"/>
-  <rect width="1920" height="880" fill="url(#glow)"/>
-  <g stroke="#2E7CD6" stroke-width="2" fill="none" opacity="0.5">
-    <path d="M1030 760 L1210 600 L1415 585 L1580 430 L1760 405 L1905 280"/>
-    <path d="M1120 820 L1330 700 L1480 705 L1665 545 L1860 520" opacity="0.55"/>
-    <path d="M990 640 L1150 500 L1290 488 L1430 350 L1620 330 L1745 210 L1910 185" opacity="0.7"/>
+  <rect width="1920" height="880" fill="url(#dawn)"/>
+
+  <!-- distant skyline -->
+  <g fill="#0A1D36" opacity="0.85">
+    <rect x="1140" y="470" width="46" height="120"/><rect x="1196" y="430" width="34" height="160"/>
+    <rect x="1240" y="492" width="58" height="98"/><rect x="1308" y="452" width="30" height="138"/>
+    <rect x="1348" y="500" width="72" height="90"/><rect x="1430" y="466" width="38" height="124"/>
+    <rect x="1478" y="506" width="52" height="84"/><rect x="1540" y="440" width="28" height="150"/>
+    <rect x="1578" y="486" width="66" height="104"/><rect x="1654" y="512" width="44" height="78"/>
+    <rect x="1708" y="458" width="32" height="132"/><rect x="1750" y="498" width="74" height="92"/>
+    <rect x="1834" y="474" width="40" height="116"/>
   </g>
-  <g fill="#5EA0E6">
-    <circle cx="1210" cy="600" r="5"/><circle cx="1415" cy="585" r="4"/>
-    <circle cx="1580" cy="430" r="5"/><circle cx="1760" cy="405" r="4"/>
-    <circle cx="1330" cy="700" r="4"/><circle cx="1665" cy="545" r="5"/>
-    <circle cx="1150" cy="500" r="4"/><circle cx="1430" cy="350" r="5"/>
-    <circle cx="1620" cy="330" r="4"/><circle cx="1745" cy="210" r="5"/>
+  <g fill="#5EA0E6" opacity="0.5">
+    <rect x="1205" y="446" width="4" height="6"/><rect x="1217" y="462" width="4" height="6"/>
+    <rect x="1316" y="470" width="4" height="6"/><rect x="1444" y="482" width="4" height="6"/>
+    <rect x="1549" y="458" width="4" height="6"/><rect x="1596" y="504" width="4" height="6"/>
+    <rect x="1718" y="476" width="4" height="6"/><rect x="1846" y="492" width="4" height="6"/>
   </g>
-  <g fill="none" stroke="#5EA0E6" opacity="0.35">
-    <circle cx="1580" cy="430" r="14"/><circle cx="1430" cy="350" r="12"/><circle cx="1210" cy="600" r="12"/>
+
+  <!-- horizon land -->
+  <rect x="0" y="590" width="1920" height="290" fill="url(#ground)"/>
+  <path d="M0 590 Q 420 566 860 586 T 1920 578 L1920 600 L0 600 Z" fill="#0C2140" opacity="0.9"/>
+
+  <!-- road -->
+  <path d="M690 880 L1010 604 L1500 604 L1920 880 Z" fill="url(#road)"/>
+  <path d="M690 880 L1010 604" stroke="#4E86C4" stroke-width="3" opacity="0.55" fill="none"/>
+  <path d="M1500 604 L1920 880" stroke="#4E86C4" stroke-width="3" opacity="0.45" fill="none"/>
+  <g stroke="#DCE9F7" stroke-width="6" opacity="0.28" stroke-linecap="round">
+    <path d="M1240 620 L1244 640"/><path d="M1236 672 L1242 704"/>
+    <path d="M1230 748 L1240 796"/><path d="M1222 838 L1234 880"/>
   </g>
-  <g stroke="#1A4A86" stroke-width="1.2" fill="none" opacity="0.5">
-    <path d="M-20 700 Q 300 640 620 690 T 1240 660"/>
-    <path d="M-20 780 Q 360 720 700 765 T 1380 740" opacity="0.6"/>
+
+  <!-- roadside markers -->
+  <g stroke="#2E7CD6" stroke-width="4" opacity="0.5" stroke-linecap="round">
+    <path d="M1032 604 L1028 578"/><path d="M1096 646 L1090 612"/>
+    <path d="M1186 706 L1178 662"/><path d="M1330 802 L1318 742"/>
   </g>
+
+  <!-- telemetry network over the corridor -->
+  <g stroke="#5EA0E6" stroke-width="2" fill="none" opacity="0.55">
+    <path d="M1030 700 L1210 560 L1415 540 L1580 400 L1760 376 L1905 262"/>
+    <path d="M1120 786 L1330 664 L1480 668 L1665 512 L1860 488" opacity="0.5"/>
+    <path d="M990 596 L1150 462 L1290 450 L1430 320 L1620 300 L1745 190 L1910 168" opacity="0.65"/>
+  </g>
+  <g fill="#7FBAF2">
+    <circle cx="1210" cy="560" r="5"/><circle cx="1415" cy="540" r="4"/>
+    <circle cx="1580" cy="400" r="5"/><circle cx="1760" cy="376" r="4"/>
+    <circle cx="1330" cy="664" r="4"/><circle cx="1665" cy="512" r="5"/>
+    <circle cx="1150" cy="462" r="4"/><circle cx="1430" cy="320" r="5"/>
+    <circle cx="1620" cy="300" r="4"/><circle cx="1745" cy="190" r="5"/>
+  </g>
+  <g fill="none" stroke="#7FBAF2" opacity="0.32">
+    <circle cx="1580" cy="400" r="15"/><circle cx="1430" cy="320" r="13"/><circle cx="1210" cy="560" r="13"/>
+  </g>
+
+  <!-- articulated truck -->
+  <g transform="translate(880 396) scale(0.96)">
+    <!-- headlight wash -->
+    <path d="M-10 196 L-300 172 L-300 238 L-10 236 Z" fill="url(#beam)" opacity="0.18"/>
+    <!-- trailer -->
+    <rect x="196" y="46" width="470" height="176" rx="8" fill="url(#trailer)"/>
+    <rect x="196" y="46" width="470" height="176" rx="8" fill="none" stroke="#8FA8C2" stroke-width="3"/>
+    <g stroke="#C3D2E2" stroke-width="2" opacity="0.8">
+      <path d="M262 50 L262 218"/><path d="M330 50 L330 218"/><path d="M398 50 L398 218"/>
+      <path d="M466 50 L466 218"/><path d="M534 50 L534 218"/><path d="M602 50 L602 218"/>
+    </g>
+    <rect x="232" y="96" width="182" height="42" rx="6" fill="#123E70" opacity="0.92"/>
+    <rect x="244" y="108" width="18" height="18" rx="3" fill="#5EA0E6"/>
+    <rect x="272" y="112" width="128" height="10" rx="5" fill="#9CC4EE" opacity="0.9"/>
+    <!-- chassis -->
+    <rect x="150" y="222" width="524" height="16" fill="#132B48"/>
+    <!-- cab -->
+    <path d="M150 222 L150 96 Q150 78 168 76 L246 70 L246 222 Z" fill="url(#cab)"/>
+    <path d="M62 222 L62 138 Q62 118 84 114 L150 100 L150 222 Z" fill="url(#cab)"/>
+    <path d="M74 146 L150 130 L150 186 L74 186 Z" fill="#BEDDFB" opacity="0.92"/>
+    <path d="M74 146 L150 130 L150 152 L74 166 Z" fill="#FFFFFF" opacity="0.35"/>
+    <rect x="58" y="186" width="18" height="30" rx="4" fill="#0E3A6B"/>
+    <rect x="150" y="70" width="96" height="18" rx="6" fill="#1B5FA8"/>
+    <!-- lights -->
+    <rect x="46" y="196" width="22" height="16" rx="6" fill="#FFE6AE"/>
+    <circle cx="57" cy="204" r="14" fill="#FFE6AE" opacity="0.35"/>
+    <!-- wheels -->
+    <g fill="#0A1728">
+      <circle cx="128" cy="248" r="40"/><circle cx="446" cy="248" r="40"/>
+      <circle cx="546" cy="248" r="40"/>
+    </g>
+    <g fill="#2A4A6E">
+      <circle cx="128" cy="248" r="17"/><circle cx="446" cy="248" r="17"/>
+      <circle cx="546" cy="248" r="17"/>
+    </g>
+    <!-- ground shadow -->
+    <ellipse cx="380" cy="296" rx="290" ry="14" fill="#020A14" opacity="0.32"/>
+  </g>
+
+  <!-- keep the headline side readable -->
+  <rect width="920" height="880" fill="url(#leftfade)"/>
 </svg>

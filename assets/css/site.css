@@ -266,6 +266,15 @@ body.nav-open .nav-toggle .icon-close { display: block; }
 }
 .company-link .tc-icon { width: 17px; height: 17px; transition: transform .2s; }
 .company-card:hover .company-link .tc-icon { transform: translateX(4px); }
+.company-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.card-link::after { content: ""; position: absolute; inset: 0; z-index: 1; }
+.company-visit {
+  position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font-head); font-weight: 600; font-size: 13.5px; color: var(--muted);
+  transition: color .2s;
+}
+.company-visit .tc-icon { width: 15px; height: 15px; }
+.company-visit:hover { color: var(--blue); }
 
 /* ---------- Ecosystem flow ---------- */
 .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; counter-reset: step; margin-top: 10px; }

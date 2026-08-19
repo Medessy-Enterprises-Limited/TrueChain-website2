@@ -13,13 +13,20 @@
   <div class="container">
     <div class="companies-grid">
       <?php foreach ($companies as $i => $c): ?>
-        <a class="company-card reveal reveal-d<?= ($i % 3) + 1 ?>" href="<?= e(url('companies/' . $c['slug'])) ?>">
+        <div class="company-card reveal reveal-d<?= ($i % 3) + 1 ?>">
           <div class="company-icon"><?= tc_icon($c['icon'] ?: 'group') ?></div>
           <div class="company-cat"><?= e($c['category']) ?></div>
           <h3><?= e($c['name']) ?></h3>
           <p><?= e($c['summary'] ?: $c['tagline']) ?></p>
-          <span class="company-link">Learn more <?= tc_icon('arrow') ?></span>
-        </a>
+          <div class="company-actions">
+            <a class="company-link card-link" href="<?= e(url('companies/' . $c['slug'])) ?>">Learn more <?= tc_icon('arrow') ?></a>
+            <?php if ($c['website_url'] && $c['website_url'] !== '#'): ?>
+              <a class="company-visit" href="<?= e($c['website_url']) ?>" target="_blank" rel="noopener">
+                Visit site <?= tc_icon('external') ?>
+              </a>
+            <?php endif; ?>
+          </div>
+        </div>
       <?php endforeach; ?>
     </div>
   </div>

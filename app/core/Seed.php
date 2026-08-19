@@ -6,6 +6,12 @@
  */
 class Seed
 {
+    /**
+     * Bumped whenever content shipped with the code changes. Sites installed
+     * before the bump run Seed::topUp() once to catch up.
+     */
+    public const CONTENT_VERSION = 2;
+
     public static function run(string $adminName, string $adminEmail, string $adminPassword): void
     {
         $now = date('Y-m-d H:i:s');
@@ -32,7 +38,7 @@ class Seed
             'favicon'           => 'assets/img/favicon.png',
             'contact_email'     => $adminEmail,
             'contact_phone'     => '+234 800 000 0000',
-            'contact_address'   => 'Lagos, Nigeria',
+            'contact_address'   => '10A Poroku Layout (Alternative Route), Off Chevron Drive, Lekki, Lagos, Nigeria',
             'office_hours'      => 'Monday to Friday, 8:00 to 17:00 WAT',
             'social_linkedin'   => '',
             'social_x'          => '',
@@ -45,6 +51,7 @@ class Seed
             'timezone'          => 'Africa/Lagos',
             'analytics_code'    => '',
             'copyright'         => 'True Chain Infrastructure Company. All rights reserved.',
+            'content_version'   => (string)self::CONTENT_VERSION,
         ];
         foreach ($settings as $k => $v) {
             DB::insert('settings', ['skey' => $k, 'svalue' => $v]);
@@ -130,25 +137,127 @@ class Seed
         }
 
         /* ------------------------------------------------ leadership */
-        DB::insert('leaders', [
-            'name'       => 'Dr. Osamede Evbakhavbokun',
-            'title'      => 'Founder and Group Chief Executive Officer',
-            'photo'      => '',
-            'linkedin'   => '',
-            'email'      => '',
-            'sort_order' => 10,
-            'active'     => 1,
-            'bio'        => '<p>Dr. Osamede Evbakhavbokun is a results-driven supply chain strategist, logistics entrepreneur and institutional innovator with over 20 years of experience spanning finance, payments and third-party logistics across Sub-Saharan Africa.</p>'
-                . '<p>As Founder and Chief Executive Officer of Medessy Enterprises Limited, he has built one of Nigeria’s foremost third-party logistics companies, managing a fleet of over 220 vehicles across more than 25 operational locations and serving the primary distribution networks of some of the world’s most recognised FMCG multinationals, including Nigerian Bottling Company (Coca-Cola), International Breweries (AB InBev) and Chi Limited.</p>'
-                . '<p>He holds a Doctor of Business Administration in Operations and Supply Chain Management from Pan-Atlantic University and Lagos Business School, where his doctoral research examined the critical success factors of third-party logistics services in Nigeria’s FMCG sector. His education further includes an MBA from Lagos Business School, a Global Leadership Program certificate from the Smith School of Business at Queen’s University, Canada, and a B.Sc. from the University of Benin.</p>'
-                . '<p>Before founding Medessy, Dr. Osamede held senior roles in Nigeria’s financial services sector, including In-bound Payments Manager at United Bank for Africa, where he oversaw monthly collections exceeding USD 1.375 billion across the group, and Head of Prepaid Cards covering 19 UBA affiliate countries. He is a recipient of the BusinessDay Top 100 Fastest Growing SMEs in Nigeria Award.</p>'
-                . '<p>Under his leadership, the group has structured institutional credit facilities exceeding NGN 10 billion for fleet expansion, pioneered a CNG dual-fuel fleet conversion programme, and designed the proprietary platforms that now anchor True Chain Technologies.</p>',
-        ]);
+        foreach (self::leaders() as $l) {
+            DB::insert('leaders', $l);
+        }
 
         /* ------------------------------------------------ pages */
         foreach (self::pages() as $i => $p) {
             DB::insert('pages', $p + ['created_at' => $now, 'updated_at' => $now]);
         }
+    }
+
+    /**
+     * Bring an existing installation in line with the seeded leadership and
+     * head office address. Only fills gaps: leaders already present by name are
+     * left alone, and the address is refreshed only while it still holds the old
+     * placeholder, so anything edited in the admin panel is never overwritten.
+     */
+    public static function topUp(): void
+    {
+        foreach (self::leaders() as $l) {
+            $exists = DB::val(
+                'SELECT COUNT(*) FROM ' . DB::table('leaders') . ' WHERE name = ?',
+                [$l['name']]
+            );
+            if ((int)$exists === 0) {
+                DB::insert('leaders', $l);
+            }
+        }
+
+        foreach (self::companyWebsites() as $slug => $url) {
+            $current = DB::get(
+                'SELECT website_url FROM ' . DB::table('companies') . ' WHERE slug = ?',
+                [$slug]
+            );
+            if ($current !== null && (($current['website_url'] ?? '') === '' || $current['website_url'] === '#')) {
+                DB::update(
+                    'companies',
+                    ['website_url' => $url, 'site_status' => 'live'],
+                    'slug = ?',
+                    [$slug]
+                );
+            }
+        }
+
+        $address = DB::val(
+            'SELECT svalue FROM ' . DB::table('settings') . " WHERE skey = 'contact_address'"
+        );
+        if ($address === 'Lagos, Nigeria') {
+            DB::update(
+                'settings',
+                ['svalue' => '10A Poroku Layout (Alternative Route), Off Chevron Drive, Lekki, Lagos, Nigeria'],
+                "skey = 'contact_address'"
+            );
+        }
+
+        Settings::set('content_version', (string)self::CONTENT_VERSION);
+    }
+
+    /**
+     * Live public websites for the operating companies, keyed by slug.
+     *
+     * @return array<string, string>
+     */
+    public static function companyWebsites(): array
+    {
+        return [
+            'true-chain-registry'  => 'https://truechainregistry.com',
+            'true-chain-soc'       => 'https://truechainsoc.com',
+            'true-chain-institute' => 'https://truechaininstitute.com',
+            'medessy-enterprises'  => 'https://medessy.com',
+        ];
+    }
+
+    /* ==================================================== leadership */
+    /**
+     * The group leadership, mirroring the team published on medessy.com.
+     * Also used by Env::provision() to top up an existing installation.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public static function leaders(): array
+    {
+        return [
+            [
+                'name'       => 'Dr. Osamede Evbakhavbokun',
+                'title'      => 'Founder and Group Chief Executive Officer',
+                'photo'      => '',
+                'linkedin'   => '',
+                'email'      => '',
+                'sort_order' => 10,
+                'active'     => 1,
+                'bio'        => '<p>Dr. Osamede Evbakhavbokun is a results-driven supply chain strategist, logistics entrepreneur and institutional innovator with over 20 years of experience spanning finance, payments and third-party logistics across Sub-Saharan Africa.</p>'
+                    . '<p>As Founder and Chief Executive Officer of Medessy Enterprises Limited, he has built one of Nigeria’s foremost third-party logistics companies, managing a fleet of over 220 vehicles across more than 25 operational locations and serving the primary distribution networks of some of the world’s most recognised FMCG multinationals, including Nigerian Bottling Company (Coca-Cola), International Breweries (AB InBev) and Chi Limited.</p>'
+                    . '<p>He holds a Doctor of Business Administration in Operations and Supply Chain Management from Pan-Atlantic University and Lagos Business School, where his doctoral research examined the critical success factors of third-party logistics services in Nigeria’s FMCG sector. His education further includes an MBA from Lagos Business School, a Global Leadership Program certificate from the Smith School of Business at Queen’s University, Canada, and a B.Sc. from the University of Benin.</p>'
+                    . '<p>Before founding Medessy, Dr. Osamede held senior roles in Nigeria’s financial services sector, including In-bound Payments Manager at United Bank for Africa, where he oversaw monthly collections exceeding USD 1.375 billion across the group, and Head of Prepaid Cards covering 19 UBA affiliate countries. He is a recipient of the BusinessDay Top 100 Fastest Growing SMEs in Nigeria Award.</p>'
+                    . '<p>Under his leadership, the group has structured institutional credit facilities exceeding NGN 10 billion for fleet expansion, pioneered a CNG dual-fuel fleet conversion programme, and designed the proprietary platforms that now anchor True Chain Technologies.</p>',
+            ],
+            [
+                'name'       => 'Esi Evbakhavbokun',
+                'title'      => 'Deputy Managing Director',
+                'photo'      => '',
+                'linkedin'   => '',
+                'email'      => '',
+                'sort_order' => 20,
+                'active'     => 1,
+                'bio'        => '<p>Esi Evbakhavbokun is Deputy Managing Director of the group, supporting its strategic direction and overseeing day-to-day operations across the operating companies.</p>'
+                    . '<p>She brings almost two decades of management consulting experience across transportation, oil and gas, manufacturing and the telecommunications service industry, with a track record in project management and business process management.</p>'
+                    . '<p>She holds a B.Eng. from the University of Benin, Benin City, and is a Certified SAP Finance Consultant.</p>',
+            ],
+            [
+                'name'       => 'Oghie Ojior',
+                'title'      => 'Senior Advisor',
+                'photo'      => '',
+                'linkedin'   => '',
+                'email'      => '',
+                'sort_order' => 30,
+                'active'     => 1,
+                'bio'        => '<p>Oghie Ojior is a seasoned business leader and supply chain specialist with more than 12 years of experience across industrial manufacturing, chemicals, automotive and mobility in multinational environments.</p>'
+                    . '<p>He built and led the group’s chemicals import and procurement division, developing it into a core capability serving tier-one FMCG clients in Nigeria, including Nigerian Bottling Company and International Breweries (AB InBev).</p>'
+                    . '<p>He helped lay the operational and strategic foundation for the group’s Trade-as-a-Service platform, building end-to-end procurement frameworks that cover demand aggregation, international sourcing, trade finance structuring, regulatory compliance with NAFDAC, SON and Customs, and last-mile logistics.</p>',
+            ],
+        ];
     }
 
     /* ==================================================== companies */
@@ -163,8 +272,8 @@ class Seed
                 'icon' => 'registry',
                 'tagline' => 'The trusted identity and integrity record for every commercial driver.',
                 'summary' => 'An industry-wide driver vetting and integrity platform that issues the True Chain ID (TCID), operates an evidence-scored Integrity Registry, and gives carriers, principals and insurers a defensible picture of every driver they engage.',
-                'website_url' => '#',
-                'site_status' => 'coming-soon',
+                'website_url' => 'https://truechainregistry.com',
+                'site_status' => 'live',
                 'content' => '<h2>What the Registry does</h2><p>The True Chain Registry is the integrity backbone of the group. Every commercial driver who completes verification receives a True Chain ID (TCID), a permanent, tamper-evident professional credential in the format TC-YEAR-STATE-SEQUENCE. The TCID is the primary key that follows the driver across every platform in the ecosystem.</p><h3>Key capabilities</h3><ul><li>Phased driver verification, including national identity (NIN), licence verification with FRSC, biometric facial indexing and liveness detection.</li><li>A three-tier, evidence-scored Integrity Registry with structured publication standards and notification of every affected driver within 24 hours.</li><li>Driver dispute resolution through an Independent Dispute Panel, with a formal filing process and published outcomes.</li><li>Company portal with six driver search methods, including photo match, case submission, billing and a full audit log.</li><li>Training records written directly from the True Chain Institute to each driver’s TCID.</li><li>Insurer data licensing and structured underwriting queries.</li></ul><h3>Who it serves</h3><p>FMCG principals verifying drivers across their haulier base, 3PLs and carriers hiring at scale, insurers pricing risk on real evidence, and professional drivers who finally own a portable, verifiable career record.</p><h3>Built for data protection</h3><p>The platform is engineered for the Nigeria Data Protection Act 2023: explicit consent capture at registration, purpose-limited role-based access, query audit trails, and driver rights of access and correction.</p>',
             ],
             [
@@ -175,8 +284,8 @@ class Seed
                 'icon' => 'soc',
                 'tagline' => 'Real-time security, telematics and rescue for every monitored kilometre.',
                 'summary' => 'A 24/7 security operations centre that bundles nine integrated services, from cargo cameras and ePadlocks to AI driver monitoring, panic SOS and corridor rescue, into one per-vehicle subscription.',
-                'website_url' => '#',
-                'site_status' => 'coming-soon',
+                'website_url' => 'https://truechainsoc.com',
+                'site_status' => 'live',
                 'content' => '<h2>Nine services. One subscription.</h2><p>The SOC turns every monitored truck into a connected, protected asset. A single per-vehicle subscription bundles the full security and telematics stack:</p><ul><li><strong>Cargo Camera</strong> monitoring of the load compartment.</li><li><strong>Tracking and telematics</strong> with live corridor visibility.</li><li><strong>Cargo ePadlock</strong> tamper-seal monitoring.</li><li><strong>AI cameras</strong> detecting fatigue, distraction and seat-belt compliance.</li><li><strong>Police collaboration</strong> through structured response protocols.</li><li><strong>In-cabin communications</strong> with the control room.</li><li><strong>Fuel monitoring</strong> against theft and diversion.</li><li><strong>Panic SOS</strong> for drivers in distress.</li><li><strong>Rescue services</strong>: tow capability, medical response framework agreements and fixed-point breakdown support anchored at the Truck Transit Parks.</li></ul><h3>The Pre-Trip Inspection App</h3><p>No monitored trip starts without it. The dispatcher scans the driver’s TCID, captures a fresh facial match against the Registry biometric record, verifies vehicle condition, and the SOC operator approves departure. Every approved trip writes to the driver’s permanent operating history.</p><h3>From telemetry to training</h3><p>The SOC’s AI engine recognises behavioural patterns, recurring harsh braking, distraction flags, fatigue cues, and recommends targeted retraining at the True Chain Institute, closing the loop between monitoring and professional development.</p>',
             ],
             [
@@ -199,8 +308,8 @@ class Seed
                 'icon' => 'institute',
                 'tagline' => 'Producing the professional workforce African logistics deserves.',
                 'summary' => 'An FRSC-accredited training academy producing professional truck drivers, maintenance technicians, supply chain professionals, warehouse operatives and trade facilitation specialists, with every certification written to the graduate’s TCID.',
-                'website_url' => '#',
-                'site_status' => 'coming-soon',
+                'website_url' => 'https://truechaininstitute.com',
+                'site_status' => 'live',
                 'content' => '<h2>The talent engine of the chain</h2><p>The True Chain Institute is the educational company of the group and the upstream supplier of verified talent to the entire ecosystem. The Institute holds accreditation under the Federal Road Safety Corps Driving School Standardisation Programme (DSSP), placing it on the national short list of recognised heavy goods vehicle training providers.</p><h3>Programmes</h3><ul><li>Professional truck driver training and class licensing pathways.</li><li>Vehicle maintenance technician programmes.</li><li>Supply chain and logistics professional courses.</li><li>Warehouse operations certification.</li><li>Customs and trade facilitation specialist training for AfCFTA-era commerce.</li></ul><h3>Credentials that travel</h3><p>Every completed course writes a verifiable completion record to the graduate’s True Chain ID on the Registry, so a driver’s qualifications, recertifications and continuing professional development are visible to any current or future employer at the moment of hiring.</p><h3>Data-driven retraining</h3><p>The SOC’s AI engine identifies behavioural patterns in live telemetry and recommends targeted modules, fatigue management, defensive driving, fuel discipline, creating a continuous improvement loop between the road and the classroom.</p>',
             ],
             [
