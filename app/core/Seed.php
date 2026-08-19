@@ -10,7 +10,7 @@ class Seed
      * Bumped whenever content shipped with the code changes. Sites installed
      * before the bump run Seed::topUp() once to catch up.
      */
-    public const CONTENT_VERSION = 2;
+    public const CONTENT_VERSION = 3;
 
     public static function run(string $adminName, string $adminEmail, string $adminPassword): void
     {
@@ -156,12 +156,18 @@ class Seed
     public static function topUp(): void
     {
         foreach (self::leaders() as $l) {
-            $exists = DB::val(
-                'SELECT COUNT(*) FROM ' . DB::table('leaders') . ' WHERE name = ?',
+            $existing = DB::get(
+                'SELECT id, photo FROM ' . DB::table('leaders') . ' WHERE name = ?',
                 [$l['name']]
             );
-            if ((int)$exists === 0) {
+            if ($existing === null) {
                 DB::insert('leaders', $l);
+                continue;
+            }
+            // Fill in a portrait that shipped later, but never replace one
+            // chosen in the admin panel.
+            if ($l['photo'] !== '' && ($existing['photo'] ?? '') === '') {
+                DB::update('leaders', ['photo' => $l['photo']], 'id = ?', [$existing['id']]);
             }
         }
 
@@ -222,7 +228,7 @@ class Seed
             [
                 'name'       => 'Dr. Osamede Evbakhavbokun',
                 'title'      => 'Founder and Group Chief Executive Officer',
-                'photo'      => '',
+                'photo'      => 'https://www.medessy.com/web/image/8148-197bab08/osamede.webp',
                 'linkedin'   => '',
                 'email'      => '',
                 'sort_order' => 10,
@@ -236,7 +242,7 @@ class Seed
             [
                 'name'       => 'Esi Evbakhavbokun',
                 'title'      => 'Deputy Managing Director',
-                'photo'      => '',
+                'photo'      => 'https://www.medessy.com/web/image/8146-dfce12a9/esi.webp',
                 'linkedin'   => '',
                 'email'      => '',
                 'sort_order' => 20,
@@ -248,7 +254,7 @@ class Seed
             [
                 'name'       => 'Oghie Ojior',
                 'title'      => 'Senior Advisor',
-                'photo'      => '',
+                'photo'      => 'https://www.medessy.com/web/image/8147-a33f075d/oghior.webp',
                 'linkedin'   => '',
                 'email'      => '',
                 'sort_order' => 30,
